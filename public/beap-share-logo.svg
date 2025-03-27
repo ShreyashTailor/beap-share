@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="15" fill="#0A1425" stroke="#4A90E2" stroke-width="2"/>
+  
+  <!-- Stylized "B" for Beap -->
+  <path d="M12 8h8c2.2 0 4 1.8 4 4s-1.8 4-4 4h-8V8z" fill="#4A90E2"/>
+  <path d="M12 16h8c2.2 0 4 1.8 4 4s-1.8 4-4 4h-8V16z" fill="#4A90E2"/>
+  
+  <!-- Share arrow -->
+  <path d="M14 12l4-4 4 4" stroke="white" stroke-width="2" stroke-linecap="round"/>
+</svg> 
