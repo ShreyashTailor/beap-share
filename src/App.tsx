@@ -715,17 +715,6 @@ function App() {
 
   return (
     <div className="min-h-screen flex flex-col bg-black text-white">
-      {/* Add Discord embed metadata */}
-      <head>
-        <meta property="og:site_name" content="BeapShare" />
-        <meta property="og:type" content="website" />
-        <meta property="og:title" content={selectedImage ? `${selectedImage.name} - BeapShare` : "BeapShare - Image Sharing"} />
-        <meta property="og:description" content={selectedImage ? `Size: ${selectedImage.formattedSize} | Upload: #${selectedImage.uploadNumber}` : "Share your images easily with BeapShare"} />
-        <meta property="og:image" content={selectedImage ? selectedImage.url : "/beap-share-logo.svg"} />
-        <meta property="theme-color" content="#0A1425" />
-        <meta name="twitter:card" content="summary_large_image" />
-      </head>
-      
       <Toaster 
         position="bottom-center"
         toastOptions={{
