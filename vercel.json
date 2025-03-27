@@ -1,0 +1,42 @@
+{
+  "rewrites": [
+    {
+      "source": "/share/:id",
+      "destination": "/share.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=0, must-revalidate"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "https://image.beap.studio"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        },
+        {
+          "key": "Access-Control-Allow-Credentials",
+          "value": "true"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "https://beap.studio/share/:id",
+      "destination": "https://image.beap.studio/share/:id",
+      "permanent": true
+    }
+  ]
+} 
