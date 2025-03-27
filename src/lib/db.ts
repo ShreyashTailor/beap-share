@@ -1,129 +1,132 @@
-import pgPromise from 'pg-promise';
+import { initializeApp } from 'firebase/app';
+import { 
+  getAuth, 
+  GoogleAuthProvider,
+  GithubAuthProvider,
+  TwitterAuthProvider,
+  OAuthProvider,
+  signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  browserLocalPersistence,
+  UserCredential,
+  setPersistence
+} from 'firebase/auth';
+import { 
+  getFirestore, 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  addDoc, 
+  doc, 
+  setDoc, 
+  serverTimestamp,
+  updateDoc,
+  deleteDoc,
+  orderBy,
+  limit,
+  getDoc
+} from 'firebase/firestore';
+import {
+  getStorage,
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+  deleteObject
+} from 'firebase/storage';
+import { getAnalytics } from 'firebase/analytics';
 
-const pgp = pgPromise();
-
-// Database connection configuration
-const config = {
-  host: 'beapshare-sqlpro.f.aivencloud.com',
-  port: 24922,
-  database: 'defaultdb',
-  user: 'avnadmin',
-  password: 'AVNS__-vuihd7XzMrtG1bxIo',
-  ssl: {
-    rejectUnauthorized: false,
-    require: true
-  }
+// Firebase configuration with environment variables
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Create database instance
-export const db = pgp(config);
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
 
-// Initialize database tables
-export async function initDatabase() {
-  try {
-    // Create images table if it doesn't exist
-    await db.none(`
-      CREATE TABLE IF NOT EXISTS images (
-        id SERIAL PRIMARY KEY,
-        user_id TEXT NOT NULL,
-        file_name TEXT NOT NULL,
-        content_type TEXT NOT NULL,
-        size BIGINT NOT NULL,
-        image_data TEXT NOT NULL,
-        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+// Initialize services
+export const auth = getAuth(app);
+export const db = getFirestore(app);
+export const storage = getStorage(app);
+export const analytics = getAnalytics(app);
 
-    console.log('Database initialized successfully');
-  } catch (error) {
-    console.error('Error initializing database:', error);
-    throw error;
-  }
+// Configure authentication persistence
+setPersistence(auth, browserLocalPersistence);
+
+// Auth providers
+const googleProvider = new GoogleAuthProvider();
+const githubProvider = new GithubAuthProvider();
+const twitterProvider = new TwitterAuthProvider();
+const microsoftProvider = new OAuthProvider('microsoft.com');
+
+// Auth functions
+export const signInWithGoogle = () => signInWithPopup(auth, googleProvider);
+export const signInWithGithub = () => signInWithPopup(auth, githubProvider);
+export const signInWithTwitter = () => signInWithPopup(auth, twitterProvider);
+export const signInWithMicrosoft = () => signInWithPopup(auth, microsoftProvider);
+export const signInWithEmail = (email: string, password: string) => 
+  signInWithEmailAndPassword(auth, email, password);
+export const signUpWithEmail = async (email: string, password: string) => {
+  const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+  await setDoc(doc(db, 'users', userCredential.user.uid), {
+    uid: userCredential.user.uid,
+    email: userCredential.user.email,
+    createdAt: serverTimestamp(),
+    plan: 'default',
+    isAdmin: false
+  });
+  return userCredential;
+};
+export const logOut = () => signOut(auth);
+
+// User types
+export interface UserData {
+  uid: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+  plan: string;
+  isAdmin: boolean;
+  createdAt: Date;
+  inviteCount: number;
 }
 
-// Function to store an image
-export async function storeImage(
-  userId: string,
-  fileName: string,
-  contentType: string,
-  size: number,
-  imageData: string
-): Promise<number> {
-  try {
-    const result = await db.one(`
-      INSERT INTO images (user_id, file_name, content_type, size, image_data)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id
-    `, [userId, fileName, contentType, size, imageData]);
-
-    return result.id;
-  } catch (error) {
-    console.error('Error storing image:', error);
-    throw error;
-  }
+// Image types
+export interface ImageData {
+  id: string;
+  uid: string;
+  name: string;
+  url: string;
+  contentType: string;
+  size: number;
+  formattedSize: string;
+  formattedTimestamp: string;
+  createdAt: Date;
+  uploadNumber: number;
+  storagePath?: string;
 }
 
-// Function to get an image by ID
-export async function getImage(id: number) {
-  try {
-    return await db.oneOrNone(`
-      SELECT * FROM images WHERE id = $1
-    `, [id]);
-  } catch (error) {
-    console.error('Error getting image:', error);
-    throw error;
-  }
-}
+// Constants
+export const USER_PLANS = {
+  DEFAULT: 'default',
+  PREMIUM: 'premium',
+  ADMIN: 'admin'
+} as const;
 
-// Function to get all images for a user
-export async function getUserImages(userId: string) {
-  try {
-    return await db.any(`
-      SELECT 
-        id,
-        user_id,
-        file_name,
-        content_type,
-        size,
-        image_data,
-        created_at
-      FROM images 
-      WHERE user_id = $1 
-      ORDER BY created_at DESC
-    `, [userId]);
-  } catch (error) {
-    console.error('Error getting user images:', error);
-    throw error;
-  }
-}
+// Admin emails (move to environment variables in production)
+export const ADMIN_EMAILS = [
+  import.meta.env.VITE_ADMIN_EMAIL_1,
+  import.meta.env.VITE_ADMIN_EMAIL_2
+].filter(Boolean).map(email => email?.toLowerCase());
 
-// Function to delete an image
-export async function deleteImage(id: number, userId: string) {
-  try {
-    const result = await db.result(`
-      DELETE FROM images 
-      WHERE id = $1 AND user_id = $2
-    `, [id, userId]);
-    
-    return result.rowCount > 0;
-  } catch (error) {
-    console.error('Error deleting image:', error);
-    throw error;
-  }
-}
-
-// Function to get total storage used by a user
-export async function getUserStorageUsed(userId: string): Promise<number> {
-  try {
-    const result = await db.one(`
-      SELECT COALESCE(SUM(size), 0) as total_size
-      FROM images
-      WHERE user_id = $1
-    `, [userId]);
-    
-    return parseInt(result.total_size);
-  } catch (error) {
-    console.error('Error getting user storage:', error);
-    throw error;
-  }
-} 
+export const isAdmin = (email: string): boolean => {
+  return ADMIN_EMAILS.includes(email.toLowerCase());
+}; 
