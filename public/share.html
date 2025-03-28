@@ -2,28 +2,91 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/beap-share-logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/beap-share-logo.svg" />
     
-    <!-- Open Graph / Discord Embed -->
-    <meta property="og:site_name" content="BeapShare" />
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="%TITLE%" />
-    <meta property="og:description" content="%DESCRIPTION%" />
-    <meta property="og:image" content="%IMAGE_URL%" />
-    <meta property="theme-color" content="#0A1425" />
-    <meta name="twitter:card" content="summary_large_image" />
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="%IMAGE_NAME% - BeapShare">
+    <meta name="description" content="Size: %IMAGE_SIZE% • Upload #%UPLOAD_NUMBER% • Shared via BeapShare">
+    <meta name="theme-color" content="#0A1425">
     
-    <title>%TITLE%</title>
-
-    <script>
-      // Redirect to the main app
-      window.location.href = '/';
-    </script>
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://image.beap.studio/share/%IMAGE_ID%">
+    <meta property="og:title" content="%IMAGE_NAME% - BeapShare">
+    <meta property="og:description" content="Size: %IMAGE_SIZE% • Upload #%UPLOAD_NUMBER% • Shared via BeapShare">
+    <meta property="og:image" content="%IMAGE_URL%">
+    <meta property="og:site_name" content="BeapShare">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://image.beap.studio/share/%IMAGE_ID%">
+    <meta property="twitter:title" content="%IMAGE_NAME% - BeapShare">
+    <meta property="twitter:description" content="Size: %IMAGE_SIZE% • Upload #%UPLOAD_NUMBER% • Shared via BeapShare">
+    <meta property="twitter:image" content="%IMAGE_URL%">
+    
+    <title>%IMAGE_NAME% - BeapShare</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #0A1425;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+      }
+      .container {
+        max-width: 95vw;
+        max-height: 95vh;
+        position: relative;
+      }
+      img {
+        max-width: 100%;
+        max-height: 95vh;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .info {
+        position: absolute;
+        bottom: 16px;
+        left: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.75);
+        padding: 12px;
+        border-radius: 8px;
+        color: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        backdrop-filter: blur(10px);
+      }
+      .info a {
+        color: #fff;
+        text-decoration: none;
+      }
+      .info a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </head>
   <body>
-    <div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #000;">
-      <img src="%IMAGE_URL%" alt="%TITLE%" style="max-width: 90%; max-height: 90vh; object-fit: contain;" />
+    <div class="container">
+      <img src="%IMAGE_URL%" alt="%IMAGE_NAME%">
+      <div class="info">
+        <div>
+          <a href="https://image.beap.studio">%IMAGE_NAME%</a>
+          <span style="opacity: 0.7"> • %IMAGE_SIZE% • Upload #%UPLOAD_NUMBER%</span>
+        </div>
+      </div>
     </div>
+    <script>
+      // Redirect to main app after a short delay
+      setTimeout(() => {
+        window.location.href = 'https://image.beap.studio';
+      }, 100);
+    </script>
   </body>
 </html> 
