@@ -40,17 +40,30 @@ export default async function handler(
       return res.status(404).json({ error: 'Image data not found' });
     }
 
-    // If it's Discord's crawler, return metadata
+    // If it's Discord's crawler, return HTML with OpenGraph meta tags
     if (isDiscord) {
-      res.setHeader('Content-Type', 'application/json');
-      return res.json({
-        title: `${data.name || 'Untitled'} - BeapShare`,
-        description: `Size: ${formatBytes(data.size || 0)} • Upload #${data.uploadNumber || '0'} • Shared via BeapShare`,
-        type: 'website',
-        url: `https://image.beap.studio/share/${id}`,
-        image: data.url,
-        site_name: 'BeapShare'
-      });
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="BeapShare">
+    <meta property="og:title" content="${data.name || 'Untitled'} - BeapShare">
+    <meta property="og:description" content="Size: ${formatBytes(data.size || 0)} • Upload #${data.uploadNumber || '0'} • Shared via BeapShare">
+    <meta property="og:image" content="${data.url}">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="${data.url}">
+</head>
+<body>
+    <script>
+        window.location.href = "${data.url}";
+    </script>
+</body>
+</html>`;
+      
+      res.setHeader('Content-Type', 'text/html');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      return res.send(html);
     }
 
     // For direct browser access, redirect to the image URL
@@ -71,6 +84,9 @@ export default async function handler(
     });
   } catch (error) {
     console.error('Error serving share page:', error);
+    if (error.code === 'permission-denied' || error.code === 'resource-exhausted') {
+      return res.status(403).json({ error: 'Access to this resource is restricted or quota exceeded' });
+    }
     return res.status(500).json({ error: 'Internal server error' });
   }
 } 
