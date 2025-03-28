@@ -23,6 +23,7 @@ export default async function handler(
     const { id } = req.query;
     const userAgent = req.headers['user-agent'] || '';
     const isDiscord = userAgent.includes('Discord');
+    const isDirectAccess = req.headers.accept?.includes('text/html');
     
     if (!id || typeof id !== 'string') {
       return res.status(400).json({ error: 'Invalid image ID' });
@@ -52,9 +53,22 @@ export default async function handler(
       });
     }
 
-    // For regular users, redirect to the image URL
-    res.setHeader('Location', data.url);
-    return res.status(302).end();
+    // For direct browser access, redirect to the image URL
+    if (isDirectAccess) {
+      res.setHeader('Location', data.url);
+      return res.status(302).end();
+    }
+
+    // For API requests, return the image data
+    return res.json({
+      id: id,
+      name: data.name,
+      url: data.url,
+      size: data.size,
+      formattedSize: formatBytes(data.size || 0),
+      uploadNumber: data.uploadNumber,
+      createdAt: data.createdAt
+    });
   } catch (error) {
     console.error('Error serving share page:', error);
     return res.status(500).json({ error: 'Internal server error' });
