@@ -1,8 +1,6 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import { initializeApp, cert, getApps } from 'firebase-admin/app';
 import { getFirestore } from 'firebase-admin/firestore';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 import { formatBytes } from '../../src/lib/utils';
 
 if (!getApps().length) {
@@ -23,6 +21,8 @@ export default async function handler(
 ) {
   try {
     const { id } = req.query;
+    const userAgent = req.headers['user-agent'] || '';
+    const isDiscord = userAgent.includes('Discord');
     
     if (!id || typeof id !== 'string') {
       return res.status(400).json({ error: 'Invalid image ID' });
@@ -39,22 +39,22 @@ export default async function handler(
       return res.status(404).json({ error: 'Image data not found' });
     }
 
-    // Read the template
-    const template = readFileSync(join(process.cwd(), 'public', 'share.html'), 'utf-8');
+    // If it's Discord's crawler, return metadata
+    if (isDiscord) {
+      res.setHeader('Content-Type', 'application/json');
+      return res.json({
+        title: `${data.name || 'Untitled'} - BeapShare`,
+        description: `Size: ${formatBytes(data.size || 0)} • Upload #${data.uploadNumber || '0'} • Shared via BeapShare`,
+        type: 'website',
+        url: `https://image.beap.studio/share/${id}`,
+        image: data.url,
+        site_name: 'BeapShare'
+      });
+    }
 
-    // Replace placeholders with actual data
-    const html = template
-      .replace(/%IMAGE_URL%/g, data.url)
-      .replace(/%IMAGE_NAME%/g, data.name || 'Untitled')
-      .replace(/%IMAGE_SIZE%/g, formatBytes(data.size || 0))
-      .replace(/%UPLOAD_NUMBER%/g, data.uploadNumber?.toString() || '0')
-      .replace(/%IMAGE_ID%/g, id);
-
-    // Set cache headers
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.setHeader('Content-Type', 'text/html');
-    
-    return res.send(html);
+    // For regular users, redirect to the image URL
+    res.setHeader('Location', data.url);
+    return res.status(302).end();
   } catch (error) {
     console.error('Error serving share page:', error);
     return res.status(500).json({ error: 'Internal server error' });
