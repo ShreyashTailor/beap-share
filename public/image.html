@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeapShare - Image View</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: left;
+            background-color: #181818;
+            color: #ddd;
+            padding: 20px;
+            max-width: 600px;
+            margin: auto;
+            border-radius: 8px;
+        }
+        .container {
+            background: #222;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+        }
+        .meta-info {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        h1 {
+            font-size: 18px;
+            color: #4aa8d8;
+            margin: 0 0 10px;
+            word-break: break-word;
+        }
+        .time {
+            font-size: 14px;
+            color: #888;
+            margin-top: 10px;
+        }
+        img {
+            width: 100%;
+            height: auto;
+            border-radius: 6px;
+            margin-top: 10px;
+        }
+        a {
+            color: #4aa8d8;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="meta-info">%UPLOAD_TIME%</div>
+        <p>Size: %IMAGE_SIZE%</p>
+
+        <a href="%IMAGE_URL%">
+            %IMAGE_NAME%
+        </a>
+
+        <img src="%IMAGE_URL%" alt="%IMAGE_NAME%">
+
+        <div class="time">%UPLOAD_DATE%</div>
+    </div>
+</body>
+</html> 
