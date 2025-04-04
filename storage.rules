@@ -5,11 +5,23 @@ rules_version = '2';
 //    /databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin;
 service firebase.storage {
   match /b/{bucket}/o {
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is admin
+    function isAdmin() {
+      return isAuthenticated() && 
+        firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.isAdmin == true;
+    }
+
     match /{allPaths=**} {
-      allow read: if true;  // Allow public read access
-      allow write: if request.auth != null &&  // Must be authenticated
-                     request.resource.size < 50 * 1024 * 1024 && // 50MB max
-                     request.resource.contentType.matches('image/.*'); // Must be an image
+      // Allow public read access
+      allow read: if true;
+      
+      // Allow write access for authenticated users and admins
+      allow write: if isAuthenticated() || isAdmin();
     }
   }
 }
