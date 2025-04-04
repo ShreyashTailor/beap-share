@@ -51,12 +51,10 @@ service cloud.firestore {
 
     // Images collection rules
     match /images/{imageId} {
-      allow read: if true;  // Anyone can read images
-      allow create: if isAuthenticated() && 
-                   isWithinSizeLimit() && 
-                   isWithinDailyLimit() &&
-                   request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      // Allow reading images without auth for sharing
+      allow read: if true;
+      // Only allow writes from authenticated users
+      allow write: if request.auth != null;
     }
 
     // Stats document for upload counter
@@ -67,11 +65,7 @@ service cloud.firestore {
 
     // Users collection rules
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
-      allow write: if isAdmin();
-      allow update: if isOwner(userId) && 
-                   (!request.resource.data.diff(resource.data).affectedKeys()
-                    .hasAny(['role', 'plan', 'dailyUploads']));
+      allow read, write: if request.auth != null && request.auth.uid == userId;
     }
 
     // Default deny
