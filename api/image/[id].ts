@@ -1,6 +1,4 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../../src/lib/firebase';
-import { formatBytes } from '../../src/utils/formatBytes';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -10,30 +8,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Image ID is required' });
     }
 
-    // Get image data from Firestore
-    const imageDoc = await db.collection('images').doc(id).get();
-    
-    if (!imageDoc.exists) {
-      return res.status(404).json({ error: 'Image not found' });
-    }
-
-    const imageData = imageDoc.data();
-    if (!imageData) {
-      return res.status(404).json({ error: 'Image data not found' });
-    }
-
-    // Format the upload time
-    const uploadTime = imageData.uploadTime?.toDate();
-    const formattedDate = uploadTime ? uploadTime.toLocaleString() : 'Unknown';
-    
-    // Format file size
-    const fileSize = formatBytes(imageData.size || 0);
-    
-    // Construct the image URL
-    const imageUrl = `https://image.beap.studio/api/image/${id}`;
+    // Construct the image URL directly from the ID
+    const imageUrl = `https://firebasestorage.googleapis.com/v0/b/beap-share.appspot.com/o/images%2F${id}?alt=media`;
     
     // Set cache headers
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
     
     // Return HTML with meta tags for Discord
     const html = `
@@ -42,15 +21,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${imageData.name || 'Image'}</title>
+  <title>Image View</title>
   
   <!-- Discord Embed Metadata -->
-  <meta property="og:title" content="${imageData.name || 'Image'}" />
-  <meta property="og:image" content="${imageData.url}" />
+  <meta property="og:title" content="Image View" />
+  <meta property="og:image" content="${imageUrl}" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:type" content="image" />
-  <meta property="og:description" content="Size: ${fileSize}" />
   <meta name="theme-color" content="#4aa8d8">
   <meta name="twitter:card" content="summary_large_image">
   
@@ -106,17 +84,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </head>
 <body>
   <div class="container">
-    <div class="meta-info">${formattedDate}</div>
-    <p>Size: ${fileSize}</p>
+    <div class="meta-info">${new Date().toLocaleString()}</div>
     
-    <a href="${imageData.url}">
-      ${imageData.name || 'Image'}
+    <a href="${imageUrl}">
+      View Original Image
     </a>
     
-    <img src="${imageData.url}" 
-         alt="${imageData.name || 'Image'}">
+    <img src="${imageUrl}" 
+         alt="Image">
     
-    <div class="time">${formattedDate}</div>
+    <div class="time">${new Date().toLocaleString()}</div>
   </div>
 </body>
 </html>

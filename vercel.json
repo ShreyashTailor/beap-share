@@ -5,6 +5,10 @@
       "destination": "/api/share/:id"
     },
     {
+      "source": "/image/:id",
+      "destination": "/api/image/:id"
+    },
+    {
       "source": "/(.*)",
       "destination": "/index.html"
     }
@@ -33,6 +37,48 @@
     },
     {
       "source": "/api/share/:id",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
+    },
+    {
+      "source": "/image/:id",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=3600"
+        },
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
+    },
+    {
+      "source": "/api/image/:id",
       "headers": [
         {
           "key": "Cache-Control",
