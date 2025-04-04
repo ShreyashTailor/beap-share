@@ -85,6 +85,9 @@ function App() {
     storageStats: { totalSize: number; fileCount: number };
   }>({ users: [], storageStats: { totalSize: 0, fileCount: 0 }});
 
+  // Add new state for share modal
+  const [shareModalOpen, setShareModalOpen] = useState(false);
+
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged(async (firebaseUser: FirebaseUser | null) => {
@@ -593,10 +596,10 @@ function App() {
           <div className="flex flex-col items-center space-y-4">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
             <p className="text-gray-400">Loading your images...</p>
-          </div>
         </div>
-      );
-    }
+      </div>
+    );
+  }
 
     return (
       <div className="space-y-6">
@@ -611,7 +614,7 @@ function App() {
                       <button
                         onClick={() => {
                           setSelectedImage(image);
-                          setShowShareModal(true);
+                          setShareModalOpen(true);
                         }}
                         className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                       >
@@ -649,14 +652,14 @@ function App() {
                   placeholder="Paste image URL, or paste anywhere on page"
                   className="w-full bg-[#142036] border border-[#1E293B] rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
-                <button
+          <button
                   onClick={handleUrlUpload}
                   disabled={isLoading || !uploadUrl}
                   className="absolute right-2 top-1/2 -translate-y-1/2 px-3 py-1 bg-blue-600 hover:bg-blue-700 rounded text-sm text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
+          >
                   Upload
-                </button>
-              </div>
+          </button>
+        </div>
               <p className="text-xs text-gray-500">Pro tip: You can press Ctrl+V (or Cmd+V on Mac) anywhere on this page to paste an image URL, or an image from your clipboard.</p>
             </div>
             
@@ -693,7 +696,7 @@ function App() {
     const uploads = Object.entries(uploadProgress);
     if (uploads.length === 0) return null;
 
-    return (
+  return (
       <div className="fixed bottom-4 right-4 z-50 space-y-2">
         {uploads.map(([fileId, progress]) => (
           <div key={fileId} className="bg-[#0A1425] rounded-lg p-4 border border-gray-800 w-64 shadow-lg">
@@ -709,8 +712,14 @@ function App() {
             </div>
           </div>
         ))}
-      </div>
+        </div>
     );
+  };
+
+  // Update the handleShare function
+  const handleShare = (image: ImageData) => {
+    setSelectedImage(image);
+    setShareModalOpen(true);
   };
 
   return (
@@ -838,15 +847,11 @@ function App() {
       </footer>
 
       {/* Share Modal */}
-      {selectedImage && (
+      {shareModalOpen && selectedImage && (
         <ShareModal
-          isOpen={showShareModal}
-          onClose={() => {
-            setShowShareModal(false);
-            setSelectedImage(null);
-          }}
-          imageUrl={selectedImage.url}
-          imageId={selectedImage.id}
+          isOpen={shareModalOpen}
+          onClose={() => setShareModalOpen(false)}
+          image={selectedImage}
         />
       )}
 

@@ -22,8 +22,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Image data not found' });
     }
 
+    // Format the upload time
+    const uploadTime = imageData.uploadTime?.toDate();
+    const formattedDate = uploadTime ? uploadTime.toLocaleString() : 'Unknown';
+    
     // Format file size
     const fileSize = formatBytes(imageData.size || 0);
+    
+    // Construct the image URL
+    const imageUrl = `https://image.beap.studio/api/image/${id}`;
     
     // Set cache headers
     res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
@@ -47,22 +54,77 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   <meta name="theme-color" content="#4aa8d8">
   <meta name="twitter:card" content="summary_large_image">
   
-  <script>
-    // Redirect to the image page after a short delay
-    setTimeout(() => {
-      window.location.href = "https://image.beap.studio/image/${id}";
-    }, 100);
-  </script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: left;
+      background-color: #181818;
+      color: #ddd;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+      border-radius: 8px;
+    }
+    .container {
+      background: #222;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+    }
+    .meta-info {
+      font-size: 14px;
+      color: #aaa;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 18px;
+      color: #4aa8d8;
+      margin: 0 0 10px;
+      word-break: break-word;
+    }
+    .time {
+      font-size: 14px;
+      color: #888;
+      margin-top: 10px;
+    }
+    img {
+      width: 100%;
+      height: auto;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+    a {
+      color: #4aa8d8;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 16px;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 <body>
-  <p>Redirecting to image page...</p>
+  <div class="container">
+    <div class="meta-info">${formattedDate}</div>
+    <p>Size: ${fileSize}</p>
+    
+    <a href="${imageData.url}">
+      ${imageData.name || 'Image'}
+    </a>
+    
+    <img src="${imageData.url}" 
+         alt="${imageData.name || 'Image'}">
+    
+    <div class="time">${formattedDate}</div>
+  </div>
 </body>
 </html>
     `;
     
     res.status(200).send(html);
   } catch (error) {
-    console.error('Error in share handler:', error);
-    res.status(500).json({ error: 'Failed to process share request' });
+    console.error('Error in image handler:', error);
+    res.status(500).json({ error: 'Failed to process image request' });
   }
 } 
