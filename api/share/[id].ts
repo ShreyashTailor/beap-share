@@ -1,6 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { db } from '../../src/lib/firebase';
-import { formatBytes } from '../../src/utils/formatBytes';
+import { getImageById } from '../../src/lib/firebase';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
@@ -10,59 +9,53 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'Image ID is required' });
     }
 
-    // Get image data from Firestore
-    const imageDoc = await db.collection('images').doc(id).get();
+    const imageData = await getImageById(id);
     
-    if (!imageDoc.exists) {
+    if (!imageData) {
       return res.status(404).json({ error: 'Image not found' });
     }
 
-    const imageData = imageDoc.data();
-    if (!imageData) {
-      return res.status(404).json({ error: 'Image data not found' });
-    }
+    // Set proper cache control headers
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Content-Type', 'text/html');
 
-    // Format file size
-    const fileSize = formatBytes(imageData.size || 0);
-    
-    // Set cache headers
-    res.setHeader('Cache-Control', 'public, max-age=0, must-revalidate');
-    
-    // Return HTML with meta tags for Discord
-    const html = `
-<!DOCTYPE html>
+    // Return HTML with proper OpenGraph meta tags
+    const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${imageData.name || 'Image'}</title>
-  
-  <!-- Discord Embed Metadata -->
-  <meta property="og:title" content="${imageData.name || 'Image'}" />
-  <meta property="og:image" content="${imageData.url}" />
-  <meta property="og:image:width" content="1200" />
-  <meta property="og:image:height" content="630" />
-  <meta property="og:type" content="image" />
-  <meta property="og:description" content="Size: ${fileSize}" />
-  <meta name="theme-color" content="#4aa8d8">
-  <meta name="twitter:card" content="summary_large_image">
-  
-  <script>
-    // Redirect to the image page after a short delay
-    setTimeout(() => {
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${imageData.name} - BeapShare</title>
+    
+    <!-- Essential OpenGraph/Discord meta tags -->
+    <meta property="og:site_name" content="BeapShare">
+    <meta property="og:title" content="${imageData.name}">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="${imageData.url}">
+    <meta property="og:image:type" content="${imageData.contentType}">
+    <meta property="og:description" content="Size: ${imageData.formattedSize}">
+    <meta property="og:url" content="https://beap.studio/share/${id}">
+    
+    <!-- Twitter Card tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="${imageData.url}">
+    <meta name="twitter:title" content="${imageData.name}">
+    
+    <!-- Theme color for Discord -->
+    <meta name="theme-color" content="#4aa8d8">
+    
+    <script>
       window.location.href = "https://image.beap.studio/image/${id}";
-    }, 100);
-  </script>
+    </script>
 </head>
 <body>
-  <p>Redirecting to image page...</p>
+    <p>Redirecting to image viewer...</p>
 </body>
-</html>
-    `;
-    
-    res.status(200).send(html);
+</html>`;
+
+    return res.send(html);
   } catch (error) {
     console.error('Error in share handler:', error);
-    res.status(500).json({ error: 'Failed to process share request' });
+    return res.status(500).json({ error: 'Failed to process share request' });
   }
-} 
+}
