@@ -15,6 +15,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(404).json({ error: 'Image not found' });
     }
 
+    // Set cache control headers for Discord's crawler
     res.setHeader('Cache-Control', 'public, max-age=86400');
     res.setHeader('Content-Type', 'text/html');
 
@@ -25,14 +26,23 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${imageData.name} - BeapShare</title>
 
-    <meta property="og:type" content="website">
+    <!-- Essential OpenGraph/Discord meta tags -->
     <meta property="og:site_name" content="BeapShare">
     <meta property="og:title" content="${imageData.name}">
-    <meta property="og:description" content="Size: ${imageData.formattedSize}">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://image.beap.studio/share/${id}">
     <meta property="og:image" content="${imageData.url}">
-    <meta property="og:image:type" content="${imageData.contentType}">
-    <meta name="theme-color" content="#0A1425">
+    <meta property="og:description" content="Size: ${imageData.formattedSize}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:image" content="${imageData.url}">
+    <meta name="twitter:title" content="${imageData.name}">
+    
+    <!-- Theme color for Discord -->
+    <meta name="theme-color" content="#4aa8d8">
 
     <style>
       body {
@@ -49,15 +59,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         padding: 20px;
         border-radius: 8px;
       }
-      .metadata {
-        margin-bottom: 20px;
-        font-size: 14px;
-        color: #888;
-      }
-      .image-container {
-        width: 100%;
-        margin-top: 20px;
-      }
       img {
         max-width: 100%;
         height: auto;
@@ -67,16 +68,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 </head>
 <body>
     <div class="container">
-      <div class="metadata">
-        <h1 style="color: #4aa8d8; margin: 0 0 10px; font-size: 20px;">${imageData.name}</h1>
-        <div>Uploaded: ${imageData.formattedTimestamp}</div>
-        <div>Size: ${imageData.formattedSize}</div>
-      </div>
-      
-      <div class="image-container">
-        <img src="${imageData.url}" alt="${imageData.name}">
-      </div>
+      <h1>${imageData.name}</h1>
+      <p>Size: ${imageData.formattedSize}</p>
+      <img src="${imageData.url}" alt="${imageData.name}">
     </div>
+    <script>
+      // Optional: Redirect to image view after a short delay
+      setTimeout(() => {
+        window.location.href = "/image/${id}";
+      }, 100);
+    </script>
 </body>
 </html>`;
 
